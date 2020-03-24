@@ -82,7 +82,7 @@
 #endif
 
 /* QOS Property List support exists in Cyclone if and only if security features are available */
-#ifdef DDS_HAS_QOS_PROPERTY_LIST
+#if defined(DDSI_INCLUDE_SECURITY) && defined(DDS_HAS_QOS_PROPERTY_LIST)
 #define SUPPORT_SECURITY 1
 #else
 #define SUPPORT_SECURITY 0
@@ -651,7 +651,6 @@ static std::string get_node_user_data(const char * node_name, const char * node_
          std::string(";");
 }
 
-/* QOS propery list features exit in cyclone IFF security is supported */
 #if SUPPORT_SECURITY
 
 /*  Returns the full URI of a security file properly formatted for DDS  */
@@ -737,8 +736,9 @@ rcutils_ret_t configure_qos_for_security(
   (void) qos;
   (void) security_options;
   RMW_SET_ERROR_MSG(
-    "Security was requested but this Cyclone version does not have security support enabled.");
-    return RMW_RET_UNSUPPORTED;
+    "Security was requested but this Cyclone version does not have security "
+    "support enabled. Recompile with CMake option '-DDDSI_INCLUDE_SECURITY'");
+  return RMW_RET_UNSUPPORTED;
 }
 #endif
 
@@ -798,7 +798,7 @@ extern "C" rmw_node_t * rmw_create_node(
   if (security_options->enforce_security) {
     if (configure_qos_for_security(qos, security_options) != RMW_RET_OK) {
       return nullptr;
-    };
+    }
   }
 
   dds_entity_t pp = dds_create_participant(did, qos, nullptr);
