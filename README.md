@@ -27,3 +27,8 @@ If you want to use a pre-existing installation of Cyclone DDS, you don't need to
 may have to tell CMake where to look for it using the `CycloneDDS_DIR` variable.  That also appears
 to be the case if there are other packages in the ROS2 workspace that you would like to use Cyclone
 DDS directly instead of via the ROS2 abstraction.
+
+## Known limitations
+
+Cyclone DDS doesn't yet fully implement the Lifespan, Deadline and some of the Liveliness QoS modes.
+Consequently these features of ROS2 are also not yet supported when using Cyclone DDS.

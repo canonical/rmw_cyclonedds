@@ -75,17 +75,11 @@
 #define MULTIDOMAIN 0
 #endif
 
-#if RMW_VERSION_GTE(0, 8, 1) && MULTIDOMAIN
-#define SUPPORT_LOCALHOST 1
-#else
-#define SUPPORT_LOCALHOST 0
-#endif
-
 /* QOS Property List support exists in Cyclone if and only if security features are available */
-#if defined(DDSI_INCLUDE_SECURITY) && defined(DDS_HAS_QOS_PROPERTY_LIST)
-#define SUPPORT_SECURITY 1
+#if DDSI_INCLUDE_SECURITY && DDS_HAS_QOS_PROPERTY_LIST
+#define RMW_SUPPORT_SECURITY 1
 #else
-#define SUPPORT_SECURITY 0
+#define RMW_SUPPORT_SECURITY 0
 #endif
 
 /* Set to > 0 for printing warnings to stderr for each messages that was taken more than this many
@@ -651,8 +645,7 @@ static std::string get_node_user_data(const char * node_name, const char * node_
          std::string(";");
 }
 
-#if SUPPORT_SECURITY
-
+#if DDS_HAS_SECURITY
 /*  Returns the full URI of a security file properly formatted for DDS  */
 char * get_security_file_URI(
   const char * security_filename, const char * node_secure_root,
@@ -689,11 +682,13 @@ void store_security_filepath_in_qos(
     allocator.deallocate(security_file_path, allocator.state);
   }
 }
+#endif  /* DDS_HAS_SECURITY */
 
 /*  Set all the qos properties needed to enable DDS security  */
 rmw_ret_t configure_qos_for_security(
   dds_qos_t * qos, const rmw_node_security_options_t * security_options)
 {
+#if DDS_HAS_SECURITY
   /*  File path is set to nullptr if file does not exist or is not readable  */
   store_security_filepath_in_qos(
     qos, "dds.sec.auth.identity_ca", "identity_ca.cert.pem",
@@ -727,20 +722,15 @@ rmw_ret_t configure_qos_for_security(
   dds_qset_prop(qos, "dds.sec.access.library.finalize", "finalize_access_control");
 
   return RMW_RET_OK;
-}
 #else
-/* Fail when security is requested but not available */
-rcutils_ret_t configure_qos_for_security(
-  dds_qos_t * qos, const rmw_node_security_options_t * security_options)
-{
   (void) qos;
   (void) security_options;
   RMW_SET_ERROR_MSG(
     "Security was requested but this Cyclone version does not have security "
-    "support enabled. Recompile with CMake option '-DDDSI_INCLUDE_SECURITY'");
+    "support enabled. Recompile with CMake option '-DENABLE_SECURITY'");
   return RMW_RET_UNSUPPORTED;
-}
 #endif
+}
 
 extern "C" rmw_node_t * rmw_create_node(
   rmw_context_t * context, const char * name,
