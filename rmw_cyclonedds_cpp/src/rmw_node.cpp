@@ -61,6 +61,7 @@
 #include "namespace_prefix.hpp"
 
 #include "dds/dds.h"
+#include "dds/features.h"
 #include "dds/ddsi/ddsi_sertopic.h"
 #include "rmw_cyclonedds_cpp/serdes.hpp"
 #include "serdata.hpp"
@@ -75,8 +76,14 @@
 #define MULTIDOMAIN 0
 #endif
 
+#if RMW_VERSION_GTE(0, 8, 1) && MULTIDOMAIN
+#define SUPPORT_LOCALHOST 1
+#else
+#define SUPPORT_LOCALHOST 0
+#endif
+
 /* QOS Property List support exists in Cyclone if and only if security features are available */
-#if DDSI_INCLUDE_SECURITY && DDS_HAS_QOS_PROPERTY_LIST
+#if DDS_HAS_SECURITY && DDS_HAS_QOS_PROPERTY_LIST
 #define RMW_SUPPORT_SECURITY 1
 #else
 #define RMW_SUPPORT_SECURITY 0
@@ -645,7 +652,7 @@ static std::string get_node_user_data(const char * node_name, const char * node_
          std::string(";");
 }
 
-#if DDS_HAS_SECURITY
+#if RMW_SUPPORT_SECURITY
 /*  Returns the full URI of a security file properly formatted for DDS  */
 char * get_security_file_URI(
   const char * security_filename, const char * node_secure_root,
@@ -682,13 +689,13 @@ void store_security_filepath_in_qos(
     allocator.deallocate(security_file_path, allocator.state);
   }
 }
-#endif  /* DDS_HAS_SECURITY */
+#endif  /* RMW_SUPPORT_SECURITY */
 
 /*  Set all the qos properties needed to enable DDS security  */
 rmw_ret_t configure_qos_for_security(
   dds_qos_t * qos, const rmw_node_security_options_t * security_options)
 {
-#if DDS_HAS_SECURITY
+#if RMW_SUPPORT_SECURITY
   /*  File path is set to nullptr if file does not exist or is not readable  */
   store_security_filepath_in_qos(
     qos, "dds.sec.auth.identity_ca", "identity_ca.cert.pem",
@@ -726,8 +733,8 @@ rmw_ret_t configure_qos_for_security(
   (void) qos;
   (void) security_options;
   RMW_SET_ERROR_MSG(
-    "Security was requested but this Cyclone version does not have security "
-    "support enabled. Recompile with CMake option '-DENABLE_SECURITY'");
+    "Security was requested but the Cyclone DDS being used does not have security "
+    "support enabled. Recompile with CMake option '-DENABLE_SECURITY' Cmake option.");
   return RMW_RET_UNSUPPORTED;
 #endif
 }
