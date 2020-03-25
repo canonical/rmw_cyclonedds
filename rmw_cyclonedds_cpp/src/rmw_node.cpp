@@ -75,13 +75,6 @@
 #define MULTIDOMAIN 0
 #endif
 
-/* QOS Property List support exists in Cyclone if and only if security features are available */
-#if DDSI_INCLUDE_SECURITY && DDS_HAS_QOS_PROPERTY_LIST
-#define RMW_SUPPORT_SECURITY 1
-#else
-#define RMW_SUPPORT_SECURITY 0
-#endif
-
 /* Set to > 0 for printing warnings to stderr for each messages that was taken more than this many
    ms after writing */
 #define REPORT_LATE_MESSAGES 0
