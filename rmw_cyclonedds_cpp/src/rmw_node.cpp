@@ -61,7 +61,11 @@
 #include "namespace_prefix.hpp"
 
 #include "dds/dds.h"
+<<<<<<< HEAD
 #include "dds/ddsc/dds_public_qos.h"
+=======
+#include "dds/features.h"
+>>>>>>> 99071d4358b65ca805a147fa7ee915d3f9441f1f
 #include "dds/ddsi/ddsi_sertopic.h"
 #include "rmw_cyclonedds_cpp/serdes.hpp"
 #include "serdata.hpp"
@@ -82,8 +86,13 @@
 #define SUPPORT_LOCALHOST 0
 #endif
 
+<<<<<<< HEAD
 /* Security must be enabled when compiling and requires cyclone to support QOS property lists */
 #if DDS_HAS_SECURITY && DDS_HAS_PROPERTY_LIST_QOS
+=======
+/* QOS Property List support exists in Cyclone if and only if security features are available */
+#if DDS_HAS_SECURITY && DDS_HAS_QOS_PROPERTY_LIST
+>>>>>>> 99071d4358b65ca805a147fa7ee915d3f9441f1f
 #define RMW_SUPPORT_SECURITY 1
 #else
 #define RMW_SUPPORT_SECURITY 0
@@ -695,7 +704,10 @@ void store_security_filepath_in_qos(
 rmw_ret_t configure_qos_for_security(
   dds_qos_t * qos, const rmw_node_security_options_t * security_options)
 {
+<<<<<<< HEAD
 
+=======
+>>>>>>> 99071d4358b65ca805a147fa7ee915d3f9441f1f
 #if RMW_SUPPORT_SECURITY
   /*  File path is set to nullptr if file does not exist or is not readable  */
   store_security_filepath_in_qos(
@@ -735,8 +747,12 @@ rmw_ret_t configure_qos_for_security(
   (void) security_options;
   RMW_SET_ERROR_MSG(
     "Security was requested but the Cyclone DDS being used does not have security "
+<<<<<<< HEAD
     "support enabled. Recompile Cyclone DDS with the '-DENABLE_SECURITY=ON' "
     "CMake option");
+=======
+    "support enabled. Recompile with CMake option '-DENABLE_SECURITY' Cmake option.");
+>>>>>>> 99071d4358b65ca805a147fa7ee915d3f9441f1f
   return RMW_RET_UNSUPPORTED;
 #endif
 }
