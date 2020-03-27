@@ -61,7 +61,6 @@
 #include "namespace_prefix.hpp"
 
 #include "dds/dds.h"
-#include "dds/features.h"
 #include "dds/ddsi/ddsi_sertopic.h"
 #include "rmw_cyclonedds_cpp/serdes.hpp"
 #include "serdata.hpp"
