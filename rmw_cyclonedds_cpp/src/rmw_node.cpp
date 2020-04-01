@@ -666,26 +666,25 @@ static std::string get_node_user_data(const char * node_name, const char * node_
 #if RMW_SUPPORT_SECURITY
 /*  Returns the full URI of a security file properly formatted for DDS  */
 bool get_security_file_URI(
-  const char * security_file_uri, char * security_filename, const char * node_secure_root,
+  char ** security_file, const char * security_filename, const char * node_secure_root,
   const rcutils_allocator_t allocator)
 {
-  bool ret = false;
+  char * uri = nullptr;
 
   char * file_path = rcutils_join_path(node_secure_root, security_filename, allocator);
-  if (file_path == nullptr) {
-    security_file_uri = nullptr;
-  } else if (!rcutils_is_readable(file_path)) {
-    RCUTILS_LOG_INFO_NAMED(
-      "rmw_cyclonedds_cpp", "get_security_file_URI: %s not found", file_path);
-    security_file_uri = nullptr;
-    allocator.deallocate(file_path, allocator.state);
-  } else {
-    /*  Cyclone also supports a "data:" URI  */
-    security_file_uri = rcutils_format_string(allocator, "file:%s", file_path);
-    allocator.deallocate(file_path, allocator.state);
-    ret = true;
+  if (file_path != nullptr) {
+    if (rcutils_is_readable(file_path)) {
+      /*  Cyclone also supports a "data:" URI  */
+      uri = rcutils_format_string(allocator, "file:%s", file_path);
+      allocator.deallocate(file_path, allocator.state);
+    } else {
+      RCUTILS_LOG_INFO_NAMED(
+        "rmw_cyclonedds_cpp", "get_security_file_URI: %s not found", file_path);
+      allocator.deallocate(file_path, allocator.state);
+    }
   }
-  return ret;
+  *security_file = uri;
+  return uri != nullptr;
 }
 
 bool get_security_file_URIs(
@@ -696,27 +695,45 @@ bool get_security_file_URIs(
 
   if (security_options->security_root_path != nullptr) {
     ret = (
-      get_security_file_URI (
-        dds_security_files.identity_ca_cert, "identity_ca.cert.pem",
+      get_security_file_URI(
+        &dds_security_files.identity_ca_cert, "identity_ca.cert.pem",
         security_options->security_root_path, allocator) &&
-      get_security_file_URI (
-        dds_security_files.cert, "cert.pem",
+      get_security_file_URI(
+        &dds_security_files.cert, "cert.pem",
         security_options->security_root_path, allocator) &&
-      get_security_file_URI (
-        dds_security_files.key, "key.pem",
+      get_security_file_URI(
+        &dds_security_files.key, "key.pem",
         security_options->security_root_path, allocator) &&
-      get_security_file_URI (
-        dds_security_files.permissions_ca_cert, "permissions_ca.cert.pem",
+      get_security_file_URI(
+        &dds_security_files.permissions_ca_cert, "permissions_ca.cert.pem",
         security_options->security_root_path, allocator) &&
-      get_security_file_URI (
-        dds_security_files.governance_p7s, "governance.p7s",
+      get_security_file_URI(
+        &dds_security_files.governance_p7s, "governance.p7s",
         security_options->security_root_path, allocator) &&
-      get_security_file_URI (
-        dds_security_files.permissions_p7s, "permissions.p7s",
+      get_security_file_URI(
+        &dds_security_files.permissions_p7s, "permissions.p7s",
         security_options->security_root_path, allocator));
   }
   return ret;
 }
+
+void finalize_security_file_URIs(
+  dds_security_files_t dds_security_files, const rcutils_allocator_t allocator)
+{
+  allocator.deallocate(dds_security_files.identity_ca_cert, allocator.state);
+  dds_security_files.identity_ca_cert = nullptr;
+  allocator.deallocate(dds_security_files.cert, allocator.state);
+  dds_security_files.cert = nullptr;
+  allocator.deallocate(dds_security_files.key, allocator.state);
+  dds_security_files.key = nullptr;
+  allocator.deallocate(dds_security_files.permissions_p7s, allocator.state);
+  dds_security_files.permissions_p7s = nullptr;
+  allocator.deallocate(dds_security_files.governance_p7s, allocator.state);
+  dds_security_files.governance_p7s = nullptr;
+  allocator.deallocate(dds_security_files.permissions_p7s, allocator.state);
+  dds_security_files.permissions_p7s = nullptr;
+}
+
 #endif  /* RMW_SUPPORT_SECURITY */
 
 /* Attempt to set all the qos properties needed to enable DDS security */
@@ -750,13 +767,7 @@ rmw_ret_t configure_qos_for_security(
 
     qos_configured = true;
   }
-
-  allocator.deallocate(dds_security_files.identity_ca_cert, allocator.state);
-  allocator.deallocate(dds_security_files.cert, allocator.state);
-  allocator.deallocate(dds_security_files.key, allocator.state);
-  allocator.deallocate(dds_security_files.permissions_p7s, allocator.state);
-  allocator.deallocate(dds_security_files.governance_p7s, allocator.state);
-  allocator.deallocate(dds_security_files.permissions_p7s, allocator.state);
+  finalize_security_file_URIs(dds_security_files, allocator);
 
   if (qos_configured) {
     return RMW_RET_OK;
