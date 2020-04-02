@@ -669,13 +669,12 @@ bool get_security_file_URI(
   char ** security_file, const char * security_filename, const char * node_secure_root,
   const rcutils_allocator_t allocator)
 {
-  char * uri = nullptr;
-
+  *security_file = nullptr;
   char * file_path = rcutils_join_path(node_secure_root, security_filename, allocator);
   if (file_path != nullptr) {
     if (rcutils_is_readable(file_path)) {
       /*  Cyclone also supports a "data:" URI  */
-      uri = rcutils_format_string(allocator, "file:%s", file_path);
+      *security_file = rcutils_format_string(allocator, "file:%s", file_path);
       allocator.deallocate(file_path, allocator.state);
     } else {
       RCUTILS_LOG_INFO_NAMED(
@@ -683,8 +682,7 @@ bool get_security_file_URI(
       allocator.deallocate(file_path, allocator.state);
     }
   }
-  *security_file = uri;
-  return uri != nullptr;
+  return *security_file != nullptr;
 }
 
 bool get_security_file_URIs(
@@ -741,7 +739,7 @@ rmw_ret_t configure_qos_for_security(
   dds_qos_t * qos, const rmw_node_security_options_t * security_options)
 {
 #if RMW_SUPPORT_SECURITY
-  bool qos_configured = false;
+  rmw_ret_t ret = RMW_RET_UNSUPPORTED;
   dds_security_files_t dds_security_files;
   rcutils_allocator_t allocator = rcutils_get_default_allocator();
 
@@ -765,15 +763,10 @@ rmw_ret_t configure_qos_for_security(
     dds_qset_prop(qos, "dds.sec.access.library.init", "init_access_control");
     dds_qset_prop(qos, "dds.sec.access.library.finalize", "finalize_access_control");
 
-    qos_configured = true;
+    ret = RMW_RET_OK;
   }
   finalize_security_file_URIs(dds_security_files, allocator);
-
-  if (qos_configured) {
-    return RMW_RET_OK;
-  } else {
-    return RMW_RET_UNSUPPORTED;
-  }
+  return ret;
 #else
   (void) qos;
   (void) security_options;
