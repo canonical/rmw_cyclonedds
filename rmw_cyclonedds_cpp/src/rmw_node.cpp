@@ -724,8 +724,8 @@ void finalize_security_file_URIs(
   dds_security_files.cert = nullptr;
   allocator.deallocate(dds_security_files.key, allocator.state);
   dds_security_files.key = nullptr;
-  allocator.deallocate(dds_security_files.permissions_p7s, allocator.state);
-  dds_security_files.permissions_p7s = nullptr;
+  allocator.deallocate(dds_security_files.permissions_ca_cert, allocator.state);
+  dds_security_files.permissions_ca_cert = nullptr;
   allocator.deallocate(dds_security_files.governance_p7s, allocator.state);
   dds_security_files.governance_p7s = nullptr;
   allocator.deallocate(dds_security_files.permissions_p7s, allocator.state);
