@@ -700,17 +700,7 @@ static std::string get_node_user_data_name_ns(const char * node_name, const char
          std::string(";");
 }
 
-#if RMW_VERSION_GTE(0, 8, 2)
-static std::string get_node_user_data(
-  const char * node_name, const char * node_namespace, const char * security_context)
-{
-  return get_node_user_data_name_ns(node_name, node_namespace) +
-         std::string("securitycontext=") + std::string(security_context) +
-         std::string(";");
-}
-#else
-#define get_node_user_data get_node_user_data_name_ns
-#endif
+<<<<<<< HEAD
 #if RMW_SUPPORT_SECURITY
 /*  Returns the full URI of a security file properly formatted for DDS  */
 bool get_security_file_URI(
@@ -825,7 +815,19 @@ rmw_ret_t configure_qos_for_security(
   return RMW_RET_UNSUPPORTED;
 #endif
 }
-
+=======
+#if RMW_VERSION_GTE(0, 8, 2)
+static std::string get_node_user_data(
+  const char * node_name, const char * node_namespace, const char * security_context)
+{
+  return get_node_user_data_name_ns(node_name, node_namespace) +
+         std::string("securitycontext=") + std::string(security_context) +
+         std::string(";");
+}
+#else
+#define get_node_user_data get_node_user_data_name_ns
+#endif
+>>>>>>> origin/master
 
 extern "C" rmw_node_t * rmw_create_node(
   rmw_context_t * context, const char * name,
@@ -855,9 +857,15 @@ extern "C" rmw_node_t * rmw_create_node(
   static_cast<void>(domain_id);
   const dds_domainid_t did = DDS_DOMAIN_DEFAULT;
 #endif
+<<<<<<< HEAD
+
+  RCUTILS_CHECK_ARGUMENT_FOR_NULL(security_options, nullptr);
+
+=======
 #if !RMW_VERSION_GTE(0, 8, 2)
   (void) security_options;
 #endif
+>>>>>>> origin/master
   rmw_ret_t ret;
   int dummy_validation_result;
   size_t dummy_invalid_index;
@@ -879,9 +887,17 @@ extern "C" rmw_node_t * rmw_create_node(
 #endif
 
   dds_qos_t * qos = dds_create_qos();
+<<<<<<< HEAD
+  if (qos == nullptr) {
+    RCUTILS_LOG_ERROR_NAMED("rmw_cyclonedds_cpp", "rmw_create_node: Unable to create qos");
+    node_gone_from_domain_locked(did);
+    return nullptr;
+  }
+=======
 #if RMW_VERSION_GTE(0, 8, 2)
   std::string user_data = get_node_user_data(name, namespace_, context->options.security_context);
 #else
+>>>>>>> origin/master
   std::string user_data = get_node_user_data(name, namespace_);
 #endif
   dds_qset_userdata(qos, user_data.c_str(), user_data.size());

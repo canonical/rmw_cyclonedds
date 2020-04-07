@@ -26,6 +26,10 @@ Cyclone DDS is ready to use. It seeks to give the fastest, easiest, and most rob
 
 ## Building from source and contributing
 
+<<<<<<< HEAD
+Cyclone DDS doesn't yet fully implement the Lifespan, Deadline and some of the Liveliness QoS modes.
+Consequently these features of ROS2 are also not yet supported when using Cyclone DDS.
+=======
 Note the `master` branch maintains compatibility with ROS releases Dashing and later, including the not-yet-released [*Foxy*](https://index.ros.org/doc/ros2/Releases/Release-Foxy-Fitzroy/).
 
 If building ROS2 from source ([ros2.repos](https://github.com/ros2/ros2/blob/master/ros2.repos)), you already have this package and Cyclone DDS:
@@ -34,3 +38,4 @@ If building ROS2 from source ([ros2.repos](https://github.com/ros2/ros2/blob/mas
     rosdep install --from src -i
     colcon build
     export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
+>>>>>>> origin/master
