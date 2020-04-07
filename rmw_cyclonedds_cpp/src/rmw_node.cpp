@@ -734,7 +734,11 @@ bool get_security_file_URI(
 }
 
 bool get_security_file_URIs(
+#if !RMW_VERSION_GTE(0, 8, 2)
   const rmw_node_security_options_t * security_options,
+#else
+  const rmw_security_options_t * security_options,
+#endif
   dds_security_files_t & dds_security_files, rcutils_allocator_t allocator)
 {
   bool ret = false;
@@ -784,7 +788,13 @@ void finalize_security_file_URIs(
 
 /* Attempt to set all the qos properties needed to enable DDS security */
 rmw_ret_t configure_qos_for_security(
-  dds_qos_t * qos, const rmw_node_security_options_t * security_options)
+  dds_qos_t * qos,
+#if !RMW_VERSION_GTE(0, 8, 2)
+  const rmw_node_security_options_t * security_options
+#else
+  const rmw_security_options_t * security_options
+#endif
+)
 {
 #if RMW_SUPPORT_SECURITY
   rmw_ret_t ret = RMW_RET_UNSUPPORTED;
@@ -856,7 +866,11 @@ extern "C" rmw_node_t * rmw_create_node(
   const dds_domainid_t did = DDS_DOMAIN_DEFAULT;
 #endif
 #if !RMW_VERSION_GTE(0, 8, 2)
-  (void) security_options;
+  RCUTILS_CHECK_ARGUMENT_FOR_NULL(security_options, nullptr);
+#else
+  rmw_security_options_t * security_options;
+  RCUTILS_CHECK_ARGUMENT_FOR_NULL(context, nullptr);
+  security_options = &context->options.security_options;
 #endif
   rmw_ret_t ret;
   int dummy_validation_result;
@@ -891,9 +905,6 @@ extern "C" rmw_node_t * rmw_create_node(
       dds_delete_qos(qos);
       node_gone_from_domain_locked(did);
       return nullptr;
-    } else {
-      RCUTILS_LOG_INFO_NAMED(
-        "rmw_cyclonedds_cpp", "rmw_create_node: Unable to configure security");
     }
   }
 
